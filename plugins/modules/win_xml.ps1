@@ -98,8 +98,16 @@ function Save-ChangedXml($xmlorig, $result, $message, $check_mode, $backup) {
     }
 }
 
+function Get-RawXml($xmlorig)
+{
+    $sw = New-Object System.IO.StringWriter;
+    $xmlorig.Save($sw);
+    return $sw.ToString();
+}
+
 $params = Parse-Args $args -supports_check_mode $true
 $check_mode = Get-AnsibleParam -obj $params -name "_ansible_check_mode" -type "bool" -default $false
+$diff_support = Get-AnsibleParam -obj $params -name "_ansible_diff" -type "bool" -default $false
 
 $debug_level = Get-AnsibleParam -obj $params -name "_ansible_verbosity" -type "int"
 $debug = $debug_level -gt 2
@@ -148,6 +156,12 @@ if ($count) {
 if ($nodeListCount -eq 0) {
     $result.msg = "The supplied xpath did not match any nodes.  If this is unexpected, check your xpath is valid for the xml file at supplied path."
     Exit-Json $result
+}
+
+if ($diff_support) {
+    $result.diff = @{
+        before = Get-RawXml($xmlorig)
+    }
 }
 
 $changed = $false
@@ -285,6 +299,9 @@ if ($changed) {
     }
     else {
         $summary = "$type changed"
+    }
+    if ($diff_support) {
+        $result.diff.after = Get-RawXml($xmlorig)
     }
     Save-ChangedXml -xmlorig $xmlorig -result $result -message $summary -check_mode $check_mode -backup $backup
 }
