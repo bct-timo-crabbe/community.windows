@@ -205,14 +205,7 @@ if ($type -eq "element") {
             if ($node.get_NodeType() -eq "Document") {
                 $node = $node.get_DocumentElement()
             }
-
-            if ($node.ChildNodes.Count -eq 0) {
-                $elements = @($node)
-            }
-            else {
-                $elements = $node.get_ChildNodes()
-            }
-
+            $elements = $node.get_ChildNodes()
             [bool]$present = $false
             [bool]$changed = $false
             if ($elements.get_Count()) {
@@ -232,11 +225,11 @@ if ($type -eq "element") {
                         }
                     }
                 }
-                if (-Not $present -and ($state -eq "present")) {
-                    [void]$node.AppendChild($candidate)
-                    $result.msg = $result.msg + "xml added "
-                    $changed = $true
-                }
+            }
+            if (-Not $present -and ($state -eq "present")) {
+                [void]$node.AppendChild($candidate)
+                $result.msg = $result.msg + "xml added "
+                $changed = $true
             }
         }
     }
